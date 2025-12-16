@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ceklis Pembayaran Kredit 5 Tahun</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;margin:0;padding:20px}
+.container{max-width:1000px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.1)}
+h1,h2{text-align:center}
+table{width:100%;border-collapse:collapse;margin-bottom:30px}
+th,td{border:1px solid #ccc;padding:8px;text-align:center}
+th{background:#e9eef7}
+.year{background:#0f172a;color:#fff;padding:6px}
+.note{font-size:14px;color:#555;margin-bottom:20px}
+button{padding:6px 12px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>CEKLIS PEMBAYARAN KREDIT</h1>
+<p class="note">
+<strong>Kredit CU:</strong> Rp25.000.000 (5 Tahun)<br>
+<strong>Pinjaman Orang:</strong> Rp20.000.000<br>
+<strong>Periode:</strong> Januari 2026 – Desember 2030
+</p>
+
+<!-- TEMPAT TABEL -->
+<div id="content"></div>
+
+<script>
+// ===== SHEETDB CONFIG =====
+const API_URL = 'https://sheetdb.io/api/v1/my8w8kgcrd0ao';
+const years = [2026,2027,2028,2029,2030];
+const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+const content = document.getElementById('content');
+
+function buildTable(){
+  let html='';
+  years.forEach(y=>{
+    html+=`<h2 class="year">Tahun ${y}</h2>`;
+    html+=`<table>
+      <tr>
+        <th>Bulan</th>
+        <th>Kredit CU</th>
+        <th>Pinjaman Orang</th>
+        <th>Catatan</th>
+        <th>Simpan</th>
+      </tr>`;
+
+    months.forEach(m=>{
+      const id = `${y}-${m}`;
+      html+=`<tr>
+        <td>${m} ${y}</td>
+        <td><input type="checkbox" id="cu-${id}"></td>
+        <td><input type="checkbox" id="org-${id}"></td>
+        <td><input type="text" id="note-${id}" style="width:100%"></td>
+        <td><button onclick="saveData('${m} ${y}','${id}')">💾</button></td>
+      </tr>`;
+    });
+
+    html+='</table>';
+  });
+  content.innerHTML = html;
+}
+
+function saveData(bulan,id){
+  const payload = {
+    "Bulan": bulan,
+    "Kredit CU": document.getElementById('cu-'+id).checked ? 'YA' : 'TIDAK',
+    "Pinjaman Orang": document.getElementById('org-'+id).checked ? 'YA' : 'TIDAK',
+    "Catatan": document.getElementById('note-'+id).value
+  };
+
+  fetch(API_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({data: payload})
+  })
+  .then(()=>alert('✅ Data tersimpan ke Spreadsheet'))
+  .catch(()=>alert('❌ Gagal menyimpan'));
+}
+
+function loadData(){
+  fetch(API_URL)
+  .then(r=>r.json())
+  .then(rows=>{
+    rows.forEach(row=>{
+      if(!row.Bulan) return;
+      const [m,y] = row.Bulan.split(' ');
+      const id = `${y}-${m}`;
+
+      if(document.getElementById('cu-'+id))
+        document.getElementById('cu-'+id).checked = row['Kredit CU']==='YA';
+      if(document.getElementById('org-'+id))
+        document.getElementById('org-'+id).checked = row['Pinjaman Orang']==='YA';
+      if(document.getElementById('note-'+id))
+        document.getElementById('note-'+id).value = row['Catatan'] || '';
+    });
+  });
+}
+
+buildTable();
+loadData();
+</script>
+</div>
+
+</body>
+</html>
