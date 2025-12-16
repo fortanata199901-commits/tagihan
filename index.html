@@ -102,8 +102,10 @@ function loadData(){
   });
 }
 
-buildTable();
-loadData();
+document.addEventListener('DOMContentLoaded',()=>{
+  buildTable();
+  loadData();
+});
 </script>
 </div>
 
